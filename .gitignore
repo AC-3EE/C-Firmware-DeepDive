@@ -1,0 +1,43 @@
+# .gitignore for C/C++ Projects
+
+# === Build artifacts ===
+#
+# 目標檔、依賴檔、可執行檔
+*.o
+*.d
+*.out
+*.exe
+
+# 如果使用方法二的 Makefile，所有產物都會在 build/ 目錄下
+# 忽略整個 build 目錄是最乾淨的做法
+build/
+
+
+# === OS-specific files ===
+#
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+
+
+# === Editor-specific files ===
+#
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+
+# Vim
+*~
+*.swp
+*.swo
