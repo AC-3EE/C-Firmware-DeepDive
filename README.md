@@ -7,9 +7,9 @@
 透過親手實現底層資料結構與演算法，我期望能達到以下目標：
 
 1.  **深化對記憶體管理的理解**：不僅僅是「會用」指標，而是能從記憶體佈局的層面思考問題。
-2.  **掌握韌體開發常用模式**：精通位元操作、狀態機、回呼函式等關鍵技術。
-3.  **建立可重用的程式碼庫**：產出高品質、高內聚、低耦合的基礎模組 (例如：Ring Buffer, Linked List)。
-4.  **為作業系統 (RTOS) 的學習打下基礎**：透過模擬簡易的排程器與同步機制，理解 RTOS 的運作原理。
+2.  **掌握韌體開發常用模式**：精通位元操作、狀態機、回呼函式、硬體抽象化等關鍵技術。
+3.  **建立可重用的程式碼庫**：產出高品質、高內聚、低耦合的基礎模組 (例如：Ring Buffer, Linked List, Device Drivers)。
+4.  **為作業系統 (RTOS) 的學習打下基礎**：透過模擬簡易的排程器與同步機制，深刻理解 RTOS 的運作原理。
 
 ## 開發環境
 
@@ -28,14 +28,22 @@
 - [04-struct-union-enum](./01-core-and-memory/04-struct-union-enum/README.md)：資料結構定義與記憶體對齊 (Memory Alignment)
 - [05-keywords-for-firmware](./01-core-and-memory/05-keywords-for-firmware/README.md)：**剖析 `volatile`, `static`, `extern` 在韌體開發中的關鍵作用與場景**
 
-### 第二部分：韌體常用資料結構 (Common Firmware Data Structures)
-- [01-linked-list](./part2_linked_list/README.md)：從零實現單向連結串列 (Singly Linked List)，**並設計穩健的 API (例如：邊界條件與錯誤碼回傳)**
-- [02-ring-buffer](./part2_ring_buffer/README.md)：實現高效能、**具備執行期錯誤處理 (Runtime Error Handling) 的環形緩衝區 (Ring Buffer)**，用於 UART/SPI 等通訊場景
-- [03-state-machine](./part2_state_machine/README.md)：使用函式指標陣列，建構可擴展的狀態機
+### 第二部分：硬體抽象化與韌體基礎 (Hardware Abstraction & Firmware Foundations)
+- [01-driver-pattern](./part2_firmware_foundations/01-driver-pattern/README.md)：**為虛擬的硬體週邊 (如 UART) 設計驅動程式 API，練習硬體抽象化**
+- [02-interrupt-simulation](./part2_firmware_foundations/02-interrupt-simulation/README.md)：**透過回呼函式模擬中斷服務程式 (ISR)，理解非同步事件處理與 `volatile` 的應用場景**
 
-### 第三部分：系統程式設計概念 (System Programming Concepts)
-- [01-producer-consumer](./part3_producer_consumer/README.md)：模擬生產者-消費者模型，理解同步問題
-- [02-cooperative-scheduler](./part3_cooperative_scheduler/README.md)：建構一個簡易的協作式排程器 (Cooperative Scheduler)
+### 第三部分：韌體常用資料結構 (Common Firmware Data Structures)
+- [01-linked-list](./part3_data_structures/01-linked-list/README.md)：從零實現單向連結串列 (Singly Linked List)，**並設計穩健的 API (例如：邊界條件與錯誤碼回傳)**
+- [02-ring-buffer](./part3_data_structures/02-ring-buffer/README.md)：實現高效能、**具備執行期錯誤處理 (Runtime Error Handling) 的環形緩衝區 (Ring Buffer)**，用於 UART/SPI 等通訊場景
+- [03-state-machine](./part3_data_structures/03-state-machine/README.md)：使用函式指標陣列，建構可擴展的狀態機
+
+### 第四部分：系統程式設計與並行 (System Programming & Concurrency)
+- [01-producer-consumer](./part4_system_and_concurrency/01-producer-consumer/README.md)：模擬生產者-消費者模型，**深入探討競態條件 (Race Condition)、臨界區 (Critical Section) 與原子操作 (Atomic Operations)**
+- [02-cooperative-scheduler](./part4_system_and_concurrency/02-cooperative-scheduler/README.md)：建構一個簡易的協作式排程器 (Cooperative Scheduler)
+
+### 第五部分：建置工具與進階主題 (Build Tools & Advanced Topics)
+- [01-linker-script-basics](./part5_advanced_topics/01-linker-script-basics/README.md)：**學習連結器腳本 (Linker Script) 的基礎，並使用 `__attribute__` 將變數或函式放置在指定的記憶體區段**
+- [02-fixed-point-math](./part5_advanced_topics/02-fixed-point-math/README.md)：**在沒有 FPU 的環境下，實作固定點數運算，處理非整數的計算**
 
 >📚 詳細說明
 >每個練習資料夾內皆包含一個獨立的 `README.md`，用以說明該主題的學習目標、核心觀念筆記、程式碼實現思路以及最終的測試結果。
