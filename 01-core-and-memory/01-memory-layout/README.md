@@ -7,12 +7,20 @@ C 語言在執行時，記憶體會被劃分為幾個主要的區段（Memory Se
 
 以下是 C 語言的五大記憶體區段：
 
-## 1. 文字區段 (Text Segment / Code Segment)
-- **用途**：儲存程式的機器碼（Machine Code），也就是 C 語言編譯後的指令。
-- **特性**：
-  - **唯讀（Read-Only）**：為了防止程式意外修改自身的指令，這個區段通常是唯讀的。這也意味著多個相同程式的實例可以共享同一個文字區段，例如在 Linux 系統中，這樣可以節省記憶體。
-  - **可執行（Executable）**：包含了 CPU 要執行的指令。
- - **韌體考量**：在微控制器（Microcontroller）中，這部分通常儲存在 **Flash memory** 或 **ROM** 中，因為程式碼在燒錄後是不會變動的。
+## 1. 文字區段 (.text) 與唯讀資料區段 (.rodata)
+在現代的編譯器和連結器中，傳統的「文字區段」概念通常會被細分為兩個主要的唯讀區段：.text 和 .rodata。
+#### .text 區段 (Text Segment / Code Segment)
+- 用途：專門儲存程式的機器碼（Machine Code），也就是 C 語言編譯後的 CPU 指令。
+- 特性：
+  - 唯讀（Read-Only）：防止程式意外修改自身的指令。
+  - 可執行（Executable）：此區段的內容是可被 CPU 執行的。
+#### .rodata 區段 (Read-Only Data Segment)
+- 用途：專門儲存唯讀的資料，最常見的就是字串常數 (String Literals) 和用 const 修飾的全域變數。
+- 特性：
+  - 唯讀（Read-Only）：此區段的資料在執行期間不能被修改。
+  - 不可執行（Non-Executable）：與 .text 不同，此區段的內容是資料，不是指令，因此被作業系統標記為不可執行，以增加安全性。
+### 韌體考量
+在微控制器（MCU）中，.text 和 .rodata 這兩個區段的內容都會被燒錄在 **Flash Memory** 或 **ROM** 中。因為它們都是在程式執行前就已確定且不會改變的，將它們放在非揮發性記憶體中是標準做法。將兩者區分開，有助於更精細地分析程式佔用的 Flash 空間。
 
 ## 2. 資料區段 (Data Segment / Initialized Data Segment)
 - **用途**：儲存已經初始化（Initialized）的 **全域變數（Global Variables）** 和 **靜態變數（Static Variables）**。
@@ -39,7 +47,6 @@ static int static_uninitialized_var; // 儲存在 BSS Segment，啟動時會被�
 - **韌體考量**：程式載入器（或啟動程式碼）會在程式執行前，在 RAM 中為 BSS 區段分配記憶體，並將其內容清零。減少可執行檔的大小對於韌體來說很重要，因為 Flash memory 空間通常有限。
 
 ## 4. 堆疊區段 (Stack Segment)
-
 - **用途**：儲存 **區域變數（Local Variables）**、**函數參數（Function Parameters）**、**函數回傳位址（Return Address）** 等。它遵循 **後進先出（LIFO - Last-In, First-Out）** 的原則。
 - **特性**：
   - **自動管理**：記憶體的分配和釋放由編譯器和作業系統自動處理。當函數被呼叫時，會在堆疊上分配空間；函數回傳時，這些空間會被自動釋放。
@@ -57,43 +64,46 @@ static int static_uninitialized_var; // 儲存在 BSS Segment，啟動時會被�
 
 ## 程式碼說明：
 
-本節簡述 `main.c` 中各個全域、區域、動態變數以及函式和字串常數，是如何被分配到對應的記憶體區段。
-- **文字區段 (Text Segment / Code Segment)**
-  - `print_memory_layout()` 函式：作為可執行指令，其程式碼本身會被儲存在 **Text 區段**。
-  - 字串常數 `"Hello, Memory Layout!"`：這是一個唯讀的字串常數，它會被編譯器放置在 **Text 區段** 或專門的唯讀資料區段（`rodata 區段`，通常緊鄰 `Text` 區段或被視為其一部分）。
-- **資料區段 (Data Segment / Initialized Data Segment)**
-  - `g_initialized_var`：這是一個已初始化（Initialized）的全域變數（`int g_initialized_var = 10;`），其值在程式啟動前就已確定，因此會被儲存在 **Data** 區段。
+本節簡述 `main.c` 中各個全域、靜態、區域、動態變數以及函式和字串常數，是如何被分配到對應的記憶體區段。
+- **文字區段 (.text) 與唯讀資料區段 (.rodata)**
+  - `print_memory_layout()` 函式：作為可執行指令，其程式碼本身會被儲存在 **.text 區段**。
+  - 字串常數 `"Hello, Memory Layout!"`：這是一個唯讀的字串常數，它會被編譯器放置在 **.rodata 區段**。
+- **資料區段 (Data Segment)**
+  - `g_initialized_var` 和 `s_initialized_var`：這兩個分別是已初始化的全域變數和靜態變數，其值在程式啟動前就已確定，因此會被儲存在 **Data 區段**。
 - **BSS 區段 (Block Started by Symbol Segment)**
-  - `g_uninitialized_var`：這是一個未初始化（Uninitialized）的全域變數（`int g_uninitialized_var;`），C 語言標準保證其在程式啟動時會被初始化為 0。它會被儲存在 **BSS 區段**，這樣可以減少可執行檔的大小，因為檔案中只需記錄其存在，實際的 0 值是在程式載入記憶體時才填充的。
+  - `g_uninitialized_var` 和 `s_uninitialized_var`：這兩個分別是未初始化的全域變數和靜態變數，它們會被儲存在 **BSS 區段**，並在程式啟動時由系統初始化為 0。
 - **堆疊區段 (Stack Segment)**
-  - `l_local_var`：這是 `main()` 函式內宣告的區域變數（`int l_local_var = 20;`）。區域變數的生命週期僅限於其作用域（即 `main()` 函式被呼叫期間），因此它會被分配在 **Stack 區段**。當 `main()` 函式執行完畢並回傳時，`l_local_var` 所佔用的堆疊空間會自動被釋放。
+  - `l_local_var`：這是 `main()` 函式內宣告的區域變數，會被分配在 **Stack 區段**。
 - **堆積區段 (Heap Segment)**
-  - `heap_var_ptr` 指向的記憶體：透過 `malloc(sizeof(int))` 動態配置的記憶體空間，其位址來自於 **Heap 區段**。這塊記憶體由程式設計師手動管理，需要明確使用 `free(heap_var_ptr)` 來釋放，以避免記憶體洩漏。
+  - `heap_var_ptr` 指向的記憶體：透過 `malloc()` 動態配置的記憶體空間，其位址來自於 **Heap 區段**。
 
 ## 執行結果與分析：
 
 - **執行結果**
 ```bash
 ==================== Memory Addresses ====================
-Address of a function (Text)         : 00007FF72CB91450
-Address of a string literal (rodata) : 00007FF72CB94037
+Address of a function (Text)         : 00007FF63A061450
+Address of a string literal (rodata) : 00007FF63A064037
 ----------------------------------------------------------
-Address of initialized global (Data) : 00007FF72CB93000
-Address of uninitialized global (BSS): 00007FF72CB97030
+Address of initialized global (Data) : 00007FF63A063000
+Address of initialized static (Data) : 00007FF63A063004
+Address of uninitialized global (BSS): 00007FF63A067030
+Address of uninitialized static (BSS): 00007FF63A067034
 ----------------------------------------------------------
-Address of heap variable (Heap)      : 0000015D6F29E250
+Address of heap variable (Heap)      : 000001CBFC33D710
 ----------------------------------------------------------
-Address of local variable (Stack)    : 000000141AFFF92C
+Address of local variable (Stack)    : 0000009C269FFB7C
 ==========================================================
 ```
 - **分析**
 從執行結果的記憶體位址可以看出：
-1. **Text 區段 (0x00007FF72CB91450)** 和 **rodata (字串常數 0x00007FF72CB94037)** 位於程式記憶體空間的較低位址。這符合程式碼和唯讀資料通常被放置在記憶體底部的預期。其中，`rodata`（字串常數）與 `Text` 區段的位址非常接近，進一步證實了它們通常相鄰或共享類似的唯讀屬性。
-2. **Data 區段 (0x00007FF72CB93000)** 和 **BSS 區段 (0x00007FF72CB97030)** 緊隨 `Text`/`rodata` 之後，位於中低位址區塊。這與資料區段通常在程式碼區段之後的典型記憶體佈局相符。值得注意的是，`g_uninitialized_var` (BSS) 的位址 `(0x00007FF72CB97030)` 確實比 `g_initialized_var` (Data) 的位址 (`0x00007FF72CB93000`) 高，表明 BSS 區段通常位於 Data 區段之後。
-3. **Heap 區段 (0x0000015D6F29E250)** 的位址明顯高於 Text、Data 和 BSS 區段。這符合 **Heap 區段通常從較低位址向高位址增長** 的特性，它動態地分配記憶體，並在程式運行期間按需擴展。
-4. **Stack 區段 (0x000000141AFFF92C)** 具有最高的記憶體位址。這驗證了 **Stack 區段通常從高位址向低位址增長** 的特性。區域變數 `l_local_var` 被分配在堆疊上，其位址在所有觀察到的區段中最高。
+1. **Text/rodata 區段**：函式與字串常數的位址位於程式記憶體空間的較低位址，符合其唯讀且最先被載入的特性。
+2. **Data 區段**：已初始化的全域變數 `g_initialized_var` 和靜態變數 `s_initialized_var` 的位址非常接近，且緊跟在 Text/rodata 之後。這證實了**無論是全域還是靜態，只要經過初始化，都會被放在 Data 區段**。
+3. **BSS 區段**：未初始化的全域變數 `g_uninitialized_var` 和靜態變數 `s_uninitialized_var` 的位址也很接近，並且位於 Data 區段之後。這也證實了**未初始化的全域和靜態變數都會被歸入 BSS 區段**。
+4. **Heap 區段**：`malloc` 分配的位址明顯高於靜態儲存區（Data/BSS），符合 **Heap 由低位址向高位址生長的特性**。
+5. **Stack 區段**：區域變數 `l_local_var` 的位址在所有觀察到的區段中最高，驗證了 **Stack 由高位址向低位址生長的特性**。
 **總結**：
-本次執行結果的記憶體位址分佈，**完全驗證了 C 語言程式在典型作業系統環境下的記憶體佈局模型**。各區段的相對位址高低關係 **（Text/rodata -> Data -> BSS -> Heap -> Stack）** 與理論知識相符。這對理解韌體開發中資源受限的記憶體管理至關重要，例如區分靜態分配（Text, Data, BSS）與動態分配（Stack, Heap）的記憶體特性與管理方式。
+本次執行結果的記憶體位址分佈，再次驗證了 C 語言的記憶體佈局模型。各區段的相對位址高低關係 **（Text/rodata -> Data -> BSS -> Heap -> Stack）** 與理論知識相符，並且**確認了 `static` 變數與 `global` 變數遵循相同的分區規則**。
 
 ## 對嵌入式系統的啟示 (Implications for Embedded Systems)：
 這次的實驗結果對於資源受限的嵌入式系統開發尤其重要：
